@@ -1,12 +1,17 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use nom::branch::alt;
-use nom::bytes::complete::take_while;
-use nom::character::complete::{alpha1, char, space1};
-use nom::sequence::{pair, separated_pair};
 use nom::{
-    character::complete::line_ending, combinator::map, multi::separated_list1, AsChar, IResult,
+    branch::alt,
+    bytes::complete::take_while,
+    character::{
+        complete::line_ending,
+        complete::{alpha1, char, space1},
+    },
+    combinator::map,
+    multi::separated_list1,
+    sequence::{pair, separated_pair},
+    AsChar, IResult,
 };
 
 const DATA: &str = include_str!("input.txt");

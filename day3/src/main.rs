@@ -1,12 +1,10 @@
 use anyhow::Result;
 use nom::{
-    character::complete::line_ending,
+    character::{complete::line_ending, complete::one_of},
     combinator::map,
+    multi::{many1, separated_list1},
     IResult,
-    multi::separated_list1,
 };
-use nom::character::complete::one_of;
-use nom::multi::many1;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -43,11 +41,14 @@ fn part_two(input: &[Vec<bool>]) -> usize {
 fn traverse(input: &[Vec<bool>], x_step: usize, y_step: usize) -> usize {
     let line_length = input[0].len();
 
-    let (_, count) = input.iter().skip(y_step).step_by(y_step)
+    let (_, count) = input
+        .iter()
+        .skip(y_step)
+        .step_by(y_step)
         .fold((0, 0), |(x, count), line| {
             let x = (x + x_step).rem_euclid(line_length);
             let count = if line[x] { count + 1 } else { count };
-            (x,count)
+            (x, count)
         });
 
     count
@@ -62,9 +63,7 @@ fn parse_line(input: &str) -> IResult<&str, Vec<bool>> {
 }
 
 fn parse_position(input: &str) -> IResult<&str, bool> {
-    map(one_of(".#"), |x| {
-        x == '#'
-    })(input)
+    map(one_of(".#"), |x| x == '#')(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Vec<bool>>> {

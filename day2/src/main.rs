@@ -1,12 +1,7 @@
 use anyhow::Result;
-use complete::anychar;
 use nom::{
     bytes::complete::tag,
-    character::{
-        complete,
-        complete::line_ending,
-        complete::{alpha1, space1},
-    },
+    character::complete::{self, alpha1, anychar, line_ending, space1},
     combinator::map,
     multi::separated_list1,
     sequence::{delimited, separated_pair, tuple},
