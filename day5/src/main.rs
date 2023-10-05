@@ -28,7 +28,8 @@ fn part_one(input: &[Seat]) -> u16 {
 }
 
 fn part_two(input: &[Seat]) -> u16 {
-    let mut prev = 79u16;
+    let mut prev = input.iter().map(|s| s.seat_id).min().unwrap() - 1;
+
     input
         .iter()
         .map(|x| x.seat_id)
