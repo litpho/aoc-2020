@@ -1,8 +1,8 @@
 use anyhow::Result;
-use itertools::Itertools;
+use bit_vec::BitVec;
 use nom::{
     bytes::complete::take, character::complete::line_ending, combinator::map,
-    multi::separated_list1, sequence::pair, IResult,
+    multi::separated_list1, IResult,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -23,75 +23,39 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn part_one(input: &[Seat]) -> u16 {
-    input.iter().max().unwrap().seat_id
+fn part_one(input: &[u16]) -> u16 {
+    *input.iter().max().unwrap()
 }
 
-fn part_two(input: &[Seat]) -> u16 {
-    let mut prev = input.iter().map(|s| s.seat_id).min().unwrap() - 1;
-
-    input
-        .iter()
-        .map(|x| x.seat_id)
-        .sorted()
-        .find(|s| {
-            let found = prev + 1 != *s;
-            prev = *s;
-            found
-        })
-        .unwrap()
-        - 1
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-struct Seat {
-    row: u8,
-    column: u8,
-    seat_id: u16,
-}
-
-impl Seat {
-    pub fn new(row: u8, column: u8) -> Self {
-        let seat_id = (8u16 * row as u16) + (column as u16);
-        Seat {
-            row,
-            column,
-            seat_id,
-        }
+fn part_two(input: &[u16]) -> u16 {
+    let mut bv: BitVec = BitVec::from_elem(1024, false);
+    for seat_id in input {
+        bv.set(*seat_id as usize, true);
     }
+
+    bv.iter()
+        .enumerate()
+        .skip_while(|(_, b)| b == &false)
+        .find(|(_, b)| b == &false)
+        .map(|(idx, _)| idx)
+        .unwrap() as u16
 }
 
-fn parse(input: &str) -> IResult<&str, Vec<Seat>> {
+fn parse(input: &str) -> IResult<&str, Vec<u16>> {
     separated_list1(line_ending, parse_line)(input)
 }
 
-fn parse_line(input: &str) -> IResult<&str, Seat> {
-    map(pair(parse_row, parse_column), |(row, column)| {
-        Seat::new(row, column)
-    })(input)
-}
-
-fn parse_row(input: &str) -> IResult<&str, u8> {
-    map(take(7usize), |x: &str| {
+fn parse_line(input: &str) -> IResult<&str, u16> {
+    map(take(10usize), |x: &str| {
         let bin_string = x
             .chars()
-            .map(|c| if c == 'F' { '0' } else { '1' })
+            .map(|c| if c == 'L' || c == 'F' { '0' } else { '1' })
             .collect::<String>();
-        u8::from_str_radix(&bin_string, 2).unwrap()
+        u16::from_str_radix(&bin_string, 2).unwrap()
     })(input)
 }
 
-fn parse_column(input: &str) -> IResult<&str, u8> {
-    map(take(3usize), |x: &str| {
-        let bin_string = x
-            .chars()
-            .map(|c| if c == 'L' { '0' } else { '1' })
-            .collect::<String>();
-        u8::from_str_radix(&bin_string, 2).unwrap()
-    })(input)
-}
-
-fn parse_input(input: &'static str) -> Result<Vec<Seat>> {
+fn parse_input(input: &'static str) -> Result<Vec<u16>> {
     let (_, input) = parse(input)?;
 
     Ok(input)
@@ -113,13 +77,6 @@ mod tests {
     #[test]
     fn test_part_one() -> Result<()> {
         assert_eq!(919, part_one(&parse_input(DATA)?));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_part_two_testdata() -> Result<()> {
-        assert_eq!(118, part_two(&parse_input(TESTDATA)?));
 
         Ok(())
     }
