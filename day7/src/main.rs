@@ -126,8 +126,7 @@ impl BagRuleItem {
 
 fn parse(input: &str) -> IResult<&str, HashMap<String, Vec<BagRuleItem>>> {
     map(separated_list1(line_ending, parse_bag_rule), |v| {
-        v.into_iter()
-            .collect::<HashMap<String, Vec<BagRuleItem>>>()
+        v.into_iter().collect::<HashMap<String, Vec<BagRuleItem>>>()
     })(input)
 }
 
