@@ -2,14 +2,15 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use itertools::Itertools;
-use nom::branch::alt;
-use nom::bytes::complete::tag;
-use nom::character::complete;
-use nom::character::complete::{alpha1, line_ending};
-use nom::combinator::{map, value};
-use nom::multi::separated_list1;
-use nom::sequence::{separated_pair, terminated};
-use nom::IResult;
+use nom::{
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{self, alpha1, line_ending},
+    combinator::{map, value},
+    multi::separated_list1,
+    sequence::{separated_pair, terminated},
+    IResult,
+};
 
 const DATA: &str = include_str!("input.txt");
 

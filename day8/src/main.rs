@@ -1,8 +1,13 @@
 use anyhow::Result;
 use bit_vec::BitVec;
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete, character::complete::line_ending,
-    combinator::map, combinator::value, multi::separated_list1, sequence::preceded, IResult,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{self, line_ending},
+    combinator::{map, value},
+    multi::separated_list1,
+    sequence::preceded,
+    IResult,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -132,7 +137,6 @@ mod tests {
     use super::*;
 
     const TESTDATA: &str = include_str!("test.txt");
-    const TESTDATA2: &str = include_str!("test2.txt");
 
     #[test]
     fn test_part_one_testdata() -> Result<()> {
@@ -150,7 +154,7 @@ mod tests {
 
     #[test]
     fn test_part_two_testdata() -> Result<()> {
-        assert_eq!(8, part_two(&parse_input(TESTDATA2)?));
+        assert_eq!(8, part_two(&parse_input(TESTDATA)?));
 
         Ok(())
     }

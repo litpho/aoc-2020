@@ -1,7 +1,7 @@
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
-    character::{complete::alpha1, complete::line_ending},
+    character::complete::{alpha1, line_ending},
     combinator::map,
     multi::separated_list1,
     sequence::pair,

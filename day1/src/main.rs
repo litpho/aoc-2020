@@ -1,6 +1,10 @@
 use anyhow::Result;
 use itertools::Itertools;
-use nom::{character::complete, character::complete::line_ending, multi::separated_list1, IResult};
+use nom::{
+    character::complete::{self, line_ending},
+    multi::separated_list1,
+    IResult,
+};
 
 const DATA: &str = include_str!("input.txt");
 

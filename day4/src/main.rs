@@ -4,10 +4,7 @@ use anyhow::Result;
 use nom::{
     branch::alt,
     bytes::complete::take_while,
-    character::{
-        complete::line_ending,
-        complete::{alpha1, char, space1},
-    },
+    character::complete::{alpha1, char, line_ending, space1},
     combinator::map,
     multi::separated_list1,
     sequence::{pair, separated_pair},
