@@ -36,7 +36,7 @@ fn part_one(input: &HashMap<String, Vec<BagRuleItem>>) -> usize {
         for c in contains {
             rev_input
                 .entry(c.name.clone())
-                .or_insert(vec![])
+                .or_default()
                 .push(name.clone());
         }
     }
