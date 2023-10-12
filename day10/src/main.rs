@@ -5,7 +5,7 @@ use itertools::Itertools;
 use nom::{
     character::complete::{self, line_ending},
     multi::separated_list1,
-    IResult, Slice,
+    IResult,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -59,8 +59,7 @@ fn create_map(input: &[u8]) -> HashMap<u8, Vec<u8>> {
         .iter()
         .enumerate()
         .map(|(idx, x)| {
-            let v = input
-                .slice(idx + 1..min(idx + 4, input.len()))
+            let v = input[idx + 1..min(idx + 4, input.len())]
                 .iter()
                 .filter(|y| *y - x <= 3)
                 .copied()
