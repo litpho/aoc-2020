@@ -26,93 +26,17 @@ fn main() -> Result<()> {
 }
 
 fn part_one(input: &[Vec<Loc>]) -> usize {
-    let mut last_input = input.to_vec();
-    loop {
-        let next_input = next_round(&last_input);
-        if next_input.eq(&last_input) {
-            break;
-        }
-        last_input = next_input;
-    }
-
-    last_input
-        .iter()
-        .flat_map(|row| row.iter())
-        .filter(|l| l == &&Loc::Occupied)
-        .count()
-}
-
-fn next_round(input: &[Vec<Loc>]) -> Vec<Vec<Loc>> {
-    let mut output = vec![];
-    let max_x = input[0].len();
-    let max_y = input.len();
-    for (y, vec) in input.iter().enumerate() {
-        let mut row = vec![];
-        for (x, loc) in vec.iter().enumerate() {
-            let loc = match loc {
-                Loc::Floor => Loc::Floor,
-                _ => determine_loc(input, x, y, loc, max_x, max_y),
-            };
-            row.push(loc);
-        }
-        output.push(row);
-    }
-
-    output
-}
-
-fn determine_loc(
-    input: &[Vec<Loc>],
-    x: usize,
-    y: usize,
-    loc: &Loc,
-    max_x: usize,
-    max_y: usize,
-) -> Loc {
-    let mut count = 0;
-    if y > 0 {
-        if x > 0 && input[y - 1][x - 1] == Loc::Occupied {
-            count += 1;
-        }
-        if input[y - 1][x] == Loc::Occupied {
-            count += 1;
-        }
-        if x < max_x - 1 && input[y - 1][x + 1] == Loc::Occupied {
-            count += 1;
-        }
-    }
-    if x > 0 && input[y][x - 1] == Loc::Occupied {
-        count += 1;
-    }
-    if x < max_x - 1 && input[y][x + 1] == Loc::Occupied {
-        count += 1;
-    }
-    if y < max_y - 1 {
-        if x > 0 && input[y + 1][x - 1] == Loc::Occupied {
-            count += 1;
-        }
-        if input[y + 1][x] == Loc::Occupied {
-            count += 1;
-        }
-        if x < max_x - 1 && input[y + 1][x + 1] == Loc::Occupied {
-            count += 1;
-        }
-    }
-
-    if count == 0 {
-        return Loc::Occupied;
-    }
-    if count >= 4 {
-        return Loc::Empty;
-    }
-
-    loc.clone()
+    calculate(input, 4, true)
 }
 
 fn part_two(input: &[Vec<Loc>]) -> usize {
+    calculate(input, 5, false)
+}
+
+fn calculate(input: &[Vec<Loc>], empty_limit: usize, limit_to_one: bool) -> usize {
     let mut last_input = input.to_vec();
     loop {
-        let next_input = next_round_line(&last_input);
+        let next_input = next_round(&last_input, empty_limit, limit_to_one);
         if next_input.eq(&last_input) {
             break;
         }
@@ -126,16 +50,15 @@ fn part_two(input: &[Vec<Loc>]) -> usize {
         .count()
 }
 
-fn next_round_line(input: &[Vec<Loc>]) -> Vec<Vec<Loc>> {
+fn next_round(input: &[Vec<Loc>], empty_limit: usize, limit_to_one: bool) -> Vec<Vec<Loc>> {
+    let limits = Limits::new(input[0].len(), input.len(), empty_limit, limit_to_one);
     let mut output = vec![];
-    let max_x = input[0].len();
-    let max_y = input.len();
     for (y, vec) in input.iter().enumerate() {
         let mut row = vec![];
         for (x, loc) in vec.iter().enumerate() {
             let loc = match loc {
                 Loc::Floor => Loc::Floor,
-                _ => determine_loc_line(input, x, y, loc, max_x, max_y),
+                _ => limits.determine_loc(input, x, y, loc),
             };
             row.push(loc);
         }
@@ -145,68 +68,89 @@ fn next_round_line(input: &[Vec<Loc>]) -> Vec<Vec<Loc>> {
     output
 }
 
-fn determine_loc_line(
-    input: &[Vec<Loc>],
-    x: usize,
-    y: usize,
-    loc: &Loc,
+struct Limits {
     max_x: usize,
     max_y: usize,
-) -> Loc {
-    let mut count = 0;
-    // topleft
-    if loc_line(input, (0..x).rev(), (0..y).rev()) {
-        count += 1;
-    }
-    // top
-    if loc_line(input, [x].into_iter().cycle(), (0..y).rev()) {
-        count += 1;
-    }
-    // topright
-    if loc_line(input, (x + 1)..max_x, (0..y).rev()) {
-        count += 1;
-    }
-    // left
-    if loc_line(input, (0..x).rev(), [y].into_iter().cycle()) {
-        count += 1;
-    }
-    // right
-    if loc_line(input, (x + 1)..max_x, [y].into_iter().cycle()) {
-        count += 1;
-    }
-    if loc_line(input, (0..x).rev(), (y + 1)..max_y) {
-        count += 1;
-    }
-    if loc_line(input, [x].into_iter().cycle(), (y + 1)..max_y) {
-        count += 1;
-    }
-    if loc_line(input, (x + 1)..max_x, (y + 1)..max_y) {
-        count += 1;
-    }
-
-    if count == 0 {
-        return Loc::Occupied;
-    }
-    if count >= 5 {
-        return Loc::Empty;
-    }
-
-    loc.clone()
+    empty_limit: usize,
+    limit_to_one: bool,
 }
 
-fn loc_line(
-    input: &[Vec<Loc>],
-    x_range: impl Iterator<Item=usize>,
-    y_range: impl Iterator<Item=usize>,
-) -> bool {
-    x_range
-        .zip(y_range)
-        .find_map(|(x, y)| match input[y][x] {
+impl Limits {
+    pub fn new(max_x: usize, max_y: usize, empty_limit: usize, limit_to_one: bool) -> Self {
+        Self {
+            max_x,
+            max_y,
+            empty_limit,
+            limit_to_one,
+        }
+    }
+
+    pub fn determine_loc(&self, input: &[Vec<Loc>], x: usize, y: usize, loc: &Loc) -> Loc {
+        let mut count = 0;
+        // topleft
+        if self.loc_line(input, (0..x).rev(), (0..y).rev()) {
+            count += 1;
+        }
+        // top
+        if self.loc_line(input, [x].into_iter().cycle(), (0..y).rev()) {
+            count += 1;
+        }
+        // topright
+        if self.loc_line(input, (x + 1)..self.max_x, (0..y).rev()) {
+            count += 1;
+        }
+        // left
+        if self.loc_line(input, (0..x).rev(), [y].into_iter().cycle()) {
+            count += 1;
+        }
+        // right
+        if self.loc_line(input, (x + 1)..self.max_x, [y].into_iter().cycle()) {
+            count += 1;
+        }
+        if self.loc_line(input, (0..x).rev(), (y + 1)..self.max_y) {
+            count += 1;
+        }
+        if self.loc_line(input, [x].into_iter().cycle(), (y + 1)..self.max_y) {
+            count += 1;
+        }
+        if self.loc_line(input, (x + 1)..self.max_x, (y + 1)..self.max_y) {
+            count += 1;
+        }
+
+        match count {
+            0 => Loc::Occupied,
+            count if count >= self.empty_limit => Loc::Empty,
+            _ => loc.to_owned(),
+        }
+    }
+
+    fn loc_line(
+        &self,
+        input: &[Vec<Loc>],
+        x_range: impl Iterator<Item = usize>,
+        y_range: impl Iterator<Item = usize>,
+    ) -> bool {
+        if self.limit_to_one {
+            x_range
+                .zip(y_range)
+                .take(1)
+                .find_map(|(x, y)| Self::find_occupied(input, x, y))
+                .unwrap_or(false)
+        } else {
+            x_range
+                .zip(y_range)
+                .find_map(|(x, y)| Self::find_occupied(input, x, y))
+                .unwrap_or(false)
+        }
+    }
+
+    fn find_occupied(input: &[Vec<Loc>], x: usize, y: usize) -> Option<bool> {
+        match input[y][x] {
             Loc::Floor => None,
             Loc::Empty => Some(false),
             Loc::Occupied => Some(true),
-        })
-        .unwrap_or(false)
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
