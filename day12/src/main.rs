@@ -29,7 +29,6 @@ fn part_one(input: &[Instruction]) -> Result<usize> {
     let mut pos = Position::new(0, 0, Facing::East);
     for i in input {
         pos = new_position_one(pos, i)?;
-        println!("{:?}: {:?}", i, pos);
     }
 
     Ok(pos.x.unsigned_abs() + pos.y.unsigned_abs())
@@ -44,8 +43,9 @@ fn new_position_one(pos: Position, instruction: &Instruction) -> Result<Position
         Instruction::East(value) => new_x += *value as isize,
         Instruction::South(value) => new_y -= *value as isize,
         Instruction::West(value) => new_x -= *value as isize,
-        Instruction::Left(degrees) => new_facing = new_facing.new_facing(*degrees, false)?,
-        Instruction::Right(degrees) => new_facing = new_facing.new_facing(*degrees, true)?,
+        Instruction::Left | Instruction::Turn | Instruction::Right => {
+            new_facing = new_facing.new_facing(instruction)?
+        }
         Instruction::Forward(value) => match new_facing {
             Facing::North => new_y += *value as isize,
             Facing::East => new_x += *value as isize,
@@ -63,7 +63,6 @@ fn part_two(input: &[Instruction]) -> Result<usize> {
         let result = new_positions_two(ship, waypoint, i)?;
         ship = result.0;
         waypoint = result.1;
-        println!("{:?}: {:?} - {:?}", i, ship, waypoint);
     }
 
     Ok(ship.x.unsigned_abs() + ship.y.unsigned_abs())
@@ -84,15 +83,9 @@ fn new_positions_two(
         Instruction::East(value) => waypoint_x += *value as isize,
         Instruction::South(value) => waypoint_y -= *value as isize,
         Instruction::West(value) => waypoint_x -= *value as isize,
-        Instruction::Left(degrees) => {
+        Instruction::Left | Instruction::Turn | Instruction::Right => {
             let old_facing = waypoint_facing;
-            waypoint_facing = waypoint_facing.new_facing(*degrees, false)?;
-            (waypoint_x, waypoint_y) =
-                adjust_waypoint(&old_facing, &waypoint_facing, waypoint_x, waypoint_y);
-        }
-        Instruction::Right(degrees) => {
-            let old_facing = waypoint_facing;
-            waypoint_facing = waypoint_facing.new_facing(*degrees, true)?;
+            waypoint_facing = waypoint_facing.new_facing(instruction)?;
             (waypoint_x, waypoint_y) =
                 adjust_waypoint(&old_facing, &waypoint_facing, waypoint_x, waypoint_y);
         }
@@ -162,8 +155,9 @@ enum Instruction {
     East(usize),
     South(usize),
     West(usize),
-    Left(usize),
-    Right(usize),
+    Left,
+    Turn,
+    Right,
     Forward(usize),
 }
 
@@ -190,11 +184,12 @@ impl TryFrom<usize> for Facing {
 }
 
 impl Facing {
-    pub fn new_facing(self, degrees: usize, clockwise: bool) -> Result<Self> {
-        let modifier = if clockwise {
-            degrees / 90
-        } else {
-            4 - degrees / 90
+    pub fn new_facing(self, action: &Instruction) -> Result<Self> {
+        let modifier = match action {
+            Instruction::Right => 1,
+            Instruction::Turn => 2,
+            Instruction::Left => 3,
+            _ => 0,
         };
 
         Facing::try_from((self as usize + modifier) % 4)
@@ -213,8 +208,12 @@ fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
             'E' => Instruction::East(value as usize),
             'S' => Instruction::South(value as usize),
             'W' => Instruction::West(value as usize),
-            'L' => Instruction::Left(value as usize),
-            'R' => Instruction::Right(value as usize),
+            'L' if value == 90 => Instruction::Left,
+            'L' if value == 180 => Instruction::Turn,
+            'L' if value == 270 => Instruction::Right,
+            'R' if value == 90 => Instruction::Right,
+            'R' if value == 180 => Instruction::Turn,
+            'R' if value == 270 => Instruction::Left,
             'F' => Instruction::Forward(value as usize),
             _ => panic!("Illegal value"),
         },
@@ -227,8 +226,6 @@ fn parse_action(input: &str) -> IResult<&str, char> {
 
 fn parse_input(input: &'static str) -> Result<Vec<Instruction>> {
     let (_, input) = parse(input)?;
-
-    println!("{:?}", input);
 
     Ok(input)
 }
