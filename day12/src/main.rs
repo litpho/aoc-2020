@@ -57,7 +57,7 @@ fn new_position_one(pos: Position, instruction: &Instruction) -> Position {
 }
 
 fn part_two(input: &[Instruction]) -> usize {
-    let mut ship = (0, 0);
+    let mut ship = Position::new(0, 0, Facing::North);
     let mut waypoint = Position::new(10, 1, Facing::North);
     for i in input {
         let result = new_positions_two(ship, waypoint, i);
@@ -66,16 +66,16 @@ fn part_two(input: &[Instruction]) -> usize {
         println!("{:?}: {:?} - {:?}", i, ship, waypoint);
     }
 
-    ship.0.unsigned_abs() + ship.1.unsigned_abs()
+    ship.x.unsigned_abs() + ship.y.unsigned_abs()
 }
 
 fn new_positions_two(
-    pos: (isize, isize),
+    pos: Position,
     waypoint: Position,
     instruction: &Instruction,
-) -> ((isize, isize), Position) {
-    let mut ship_x = pos.0;
-    let mut ship_y = pos.1;
+) -> (Position, Position) {
+    let mut ship_x = pos.x;
+    let mut ship_y = pos.y;
     let mut waypoint_x = waypoint.x;
     let mut waypoint_y = waypoint.y;
     let mut waypoint_facing = waypoint.facing;
@@ -102,7 +102,7 @@ fn new_positions_two(
         }
     }
     let waypoint = adjust_facing(waypoint_x, waypoint_y, waypoint_facing);
-    ((ship_x, ship_y), waypoint)
+    (Position::new(ship_x, ship_y, Facing::North), waypoint)
 }
 
 fn adjust_waypoint(
