@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use nom::{
     character::complete::{self, line_ending, one_of},
     combinator::map,
@@ -15,27 +15,27 @@ fn main() -> Result<()> {
     let input = result?;
 
     let (took, result) = took::took(|| part_one(&input));
-    println!("Result part one: {result}");
+    println!("Result part one: {}", result?);
     println!("Time spent: {took}");
 
     let (took, result) = took::took(|| part_two(&input));
-    println!("Result part two: {result}");
+    println!("Result part two: {}", result?);
     println!("Time spent: {took}");
 
     Ok(())
 }
 
-fn part_one(input: &[Instruction]) -> usize {
-    let mut pos = Position::default();
+fn part_one(input: &[Instruction]) -> Result<usize> {
+    let mut pos = Position::new(0, 0, Facing::East);
     for i in input {
-        pos = new_position_one(pos, i);
+        pos = new_position_one(pos, i)?;
         println!("{:?}: {:?}", i, pos);
     }
 
-    pos.x.unsigned_abs() + pos.y.unsigned_abs()
+    Ok(pos.x.unsigned_abs() + pos.y.unsigned_abs())
 }
 
-fn new_position_one(pos: Position, instruction: &Instruction) -> Position {
+fn new_position_one(pos: Position, instruction: &Instruction) -> Result<Position> {
     let mut new_x = pos.x;
     let mut new_y = pos.y;
     let mut new_facing = pos.facing;
@@ -44,8 +44,8 @@ fn new_position_one(pos: Position, instruction: &Instruction) -> Position {
         Instruction::East(value) => new_x += *value as isize,
         Instruction::South(value) => new_y -= *value as isize,
         Instruction::West(value) => new_x -= *value as isize,
-        Instruction::Left(degrees) => new_facing = new_facing.new_facing(*degrees, false),
-        Instruction::Right(degrees) => new_facing = new_facing.new_facing(*degrees, true),
+        Instruction::Left(degrees) => new_facing = new_facing.new_facing(*degrees, false)?,
+        Instruction::Right(degrees) => new_facing = new_facing.new_facing(*degrees, true)?,
         Instruction::Forward(value) => match new_facing {
             Facing::North => new_y += *value as isize,
             Facing::East => new_x += *value as isize,
@@ -53,27 +53,27 @@ fn new_position_one(pos: Position, instruction: &Instruction) -> Position {
             Facing::West => new_x -= *value as isize,
         },
     }
-    Position::new(new_x, new_y, new_facing)
+    Ok(Position::new(new_x, new_y, new_facing))
 }
 
-fn part_two(input: &[Instruction]) -> usize {
+fn part_two(input: &[Instruction]) -> Result<usize> {
     let mut ship = Position::new(0, 0, Facing::North);
     let mut waypoint = Position::new(10, 1, Facing::North);
     for i in input {
-        let result = new_positions_two(ship, waypoint, i);
+        let result = new_positions_two(ship, waypoint, i)?;
         ship = result.0;
         waypoint = result.1;
         println!("{:?}: {:?} - {:?}", i, ship, waypoint);
     }
 
-    ship.x.unsigned_abs() + ship.y.unsigned_abs()
+    Ok(ship.x.unsigned_abs() + ship.y.unsigned_abs())
 }
 
 fn new_positions_two(
     pos: Position,
     waypoint: Position,
     instruction: &Instruction,
-) -> (Position, Position) {
+) -> Result<(Position, Position)> {
     let mut ship_x = pos.x;
     let mut ship_y = pos.y;
     let mut waypoint_x = waypoint.x;
@@ -86,13 +86,13 @@ fn new_positions_two(
         Instruction::West(value) => waypoint_x -= *value as isize,
         Instruction::Left(degrees) => {
             let old_facing = waypoint_facing;
-            waypoint_facing = waypoint_facing.new_facing(*degrees, false);
+            waypoint_facing = waypoint_facing.new_facing(*degrees, false)?;
             (waypoint_x, waypoint_y) =
                 adjust_waypoint(&old_facing, &waypoint_facing, waypoint_x, waypoint_y);
         }
         Instruction::Right(degrees) => {
             let old_facing = waypoint_facing;
-            waypoint_facing = waypoint_facing.new_facing(*degrees, true);
+            waypoint_facing = waypoint_facing.new_facing(*degrees, true)?;
             (waypoint_x, waypoint_y) =
                 adjust_waypoint(&old_facing, &waypoint_facing, waypoint_x, waypoint_y);
         }
@@ -102,7 +102,7 @@ fn new_positions_two(
         }
     }
     let waypoint = adjust_facing(waypoint_x, waypoint_y, waypoint_facing);
-    (Position::new(ship_x, ship_y, Facing::North), waypoint)
+    Ok((Position::new(ship_x, ship_y, Facing::North), waypoint))
 }
 
 fn adjust_waypoint(
@@ -112,18 +112,18 @@ fn adjust_waypoint(
     waypoint_y: isize,
 ) -> (isize, isize) {
     match (old_facing, new_facing) {
-        (Facing::North, Facing::East) => (waypoint_y, -waypoint_x),
-        (Facing::North, Facing::South) => (-waypoint_x, -waypoint_y),
-        (Facing::North, Facing::West) => (-waypoint_y, waypoint_x),
-        (Facing::East, Facing::South) => (waypoint_y, -waypoint_x),
-        (Facing::East, Facing::West) => (-waypoint_x, -waypoint_y),
-        (Facing::East, Facing::North) => (-waypoint_y, waypoint_x),
-        (Facing::South, Facing::West) => (waypoint_y, -waypoint_x),
-        (Facing::South, Facing::North) => (-waypoint_x, -waypoint_y),
-        (Facing::South, Facing::East) => (-waypoint_y, waypoint_x),
-        (Facing::West, Facing::North) => (waypoint_y, -waypoint_x),
-        (Facing::West, Facing::East) => (-waypoint_x, -waypoint_y),
-        (Facing::West, Facing::South) => (-waypoint_y, waypoint_x),
+        (Facing::North, Facing::South)
+        | (Facing::East, Facing::West)
+        | (Facing::South, Facing::North)
+        | (Facing::West, Facing::East) => (-waypoint_x, -waypoint_y),
+        (Facing::North, Facing::East)
+        | (Facing::East, Facing::South)
+        | (Facing::South, Facing::West)
+        | (Facing::West, Facing::North) => (waypoint_y, -waypoint_x),
+        (Facing::North, Facing::West)
+        | (Facing::East, Facing::North)
+        | (Facing::South, Facing::East)
+        | (Facing::West, Facing::South) => (-waypoint_y, waypoint_x),
         _ => (waypoint_x, waypoint_y),
     }
 }
@@ -150,41 +150,9 @@ struct Position {
     facing: Facing,
 }
 
-impl Default for Position {
-    fn default() -> Self {
-        Self {
-            x: 0,
-            y: 0,
-            facing: Facing::East,
-        }
-    }
-}
-
 impl Position {
     pub fn new(x: isize, y: isize, facing: Facing) -> Self {
         Self { x, y, facing }
-    }
-}
-
-impl Facing {
-    pub fn new_facing(self, degrees: usize, clockwise: bool) -> Self {
-        if clockwise {
-            match (self as isize + degrees as isize).rem_euclid(360) {
-                0 => Facing::North,
-                90 => Facing::East,
-                180 => Facing::South,
-                270 => Facing::West,
-                _ => panic!(),
-            }
-        } else {
-            match (self as isize + 360 - degrees as isize).rem_euclid(360) {
-                0 => Facing::North,
-                90 => Facing::East,
-                180 => Facing::South,
-                270 => Facing::West,
-                _ => panic!(),
-            }
-        }
     }
 }
 
@@ -202,9 +170,35 @@ enum Instruction {
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Facing {
     North = 0,
-    East = 90,
-    South = 180,
-    West = 270,
+    East = 1,
+    South = 2,
+    West = 3,
+}
+
+impl TryFrom<usize> for Facing {
+    type Error = Error;
+
+    fn try_from(value: usize) -> std::result::Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Facing::North),
+            1 => Ok(Facing::East),
+            2 => Ok(Facing::South),
+            3 => Ok(Facing::West),
+            _ => Err(Error::msg("Failure to convert facing")),
+        }
+    }
+}
+
+impl Facing {
+    pub fn new_facing(self, degrees: usize, clockwise: bool) -> Result<Self> {
+        let modifier = if clockwise {
+            degrees / 90
+        } else {
+            4 - degrees / 90
+        };
+
+        Facing::try_from((self as usize + modifier) % 4)
+    }
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Instruction>> {
@@ -247,28 +241,28 @@ mod tests {
 
     #[test]
     fn test_part_one_testdata() -> Result<()> {
-        assert_eq!(25, part_one(&parse_input(TESTDATA)?));
+        assert_eq!(25, part_one(&parse_input(TESTDATA)?)?);
 
         Ok(())
     }
 
     #[test]
     fn test_part_one() -> Result<()> {
-        assert_eq!(319, part_one(&parse_input(DATA)?));
+        assert_eq!(319, part_one(&parse_input(DATA)?)?);
 
         Ok(())
     }
 
     #[test]
     fn test_part_two_testdata() -> Result<()> {
-        assert_eq!(286, part_two(&parse_input(TESTDATA)?));
+        assert_eq!(286, part_two(&parse_input(TESTDATA)?)?);
 
         Ok(())
     }
 
     #[test]
     fn test_part_two() -> Result<()> {
-        assert_eq!(50157, part_two(&parse_input(DATA)?));
+        assert_eq!(50157, part_two(&parse_input(DATA)?)?);
 
         Ok(())
     }
