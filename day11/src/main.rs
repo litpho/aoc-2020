@@ -6,6 +6,7 @@ use nom::{
     multi::{many1, separated_list1},
     IResult,
 };
+use std::iter;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -92,7 +93,7 @@ impl Limits {
             count += 1;
         }
         // top
-        if self.loc_line(input, [x].into_iter().cycle(), (0..y).rev()) {
+        if self.loc_line(input, iter::repeat(x), (0..y).rev()) {
             count += 1;
         }
         // topright
@@ -100,17 +101,17 @@ impl Limits {
             count += 1;
         }
         // left
-        if self.loc_line(input, (0..x).rev(), [y].into_iter().cycle()) {
+        if self.loc_line(input, (0..x).rev(), iter::repeat(y)) {
             count += 1;
         }
         // right
-        if self.loc_line(input, (x + 1)..self.max_x, [y].into_iter().cycle()) {
+        if self.loc_line(input, (x + 1)..self.max_x, iter::repeat(y)) {
             count += 1;
         }
         if self.loc_line(input, (0..x).rev(), (y + 1)..self.max_y) {
             count += 1;
         }
-        if self.loc_line(input, [x].into_iter().cycle(), (y + 1)..self.max_y) {
+        if self.loc_line(input, iter::repeat(x), (y + 1)..self.max_y) {
             count += 1;
         }
         if self.loc_line(input, (x + 1)..self.max_x, (y + 1)..self.max_y) {
