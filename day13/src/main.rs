@@ -8,7 +8,6 @@ use nom::{
     sequence::separated_pair,
     IResult,
 };
-use std::iter;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -21,7 +20,7 @@ fn main() -> Result<()> {
     println!("Result part one: {result}");
     println!("Time spent: {took}");
 
-    let (took, result) = took::took(|| part_two(100000000000000, &lines));
+    let (took, result) = took::took(|| part_two(&lines));
     println!("Result part two: {result}");
     println!("Time spent: {took}");
 
@@ -43,30 +42,29 @@ fn next_multiple(target: u64, factor: u64) -> u64 {
     target / factor * factor + factor
 }
 
-fn part_two(start_from: u64, lines: &[u64]) -> u64 {
-    let (max_idx, max_line) = lines
-        .iter()
-        .enumerate()
-        .filter(|(_, line)| **line != 0)
-        .max_by(|(_, a), (_, b)| a.cmp(b))
-        .unwrap();
-    let other_lines = lines
-        .iter()
-        .enumerate()
-        .filter(|(_, line)| **line != 0 && *line != max_line)
-        .collect::<Vec<(usize, &u64)>>();
+fn part_two(bus_ids: &[u64]) -> u64 {
+    // Convert "17,x,13,19" to [17, 0, 13, 19]
+    let mut current_solution = 0;
+    let mut step_size: u64 = 1;
 
-    let start = next_multiple(start_from, *max_line) - *max_line;
+    // Insight here is that each previously found pattern
+    // repeats itself every Least common multiple (LCM) steps
+    // and LCM of primes is their product (Chinese Remainder Theorem)
+    for (offset, bus_id) in bus_ids.iter().enumerate() {
+        if *bus_id == 0 {
+            continue;
+        }
 
-    iter::successors(Some(start), |x| Some(x + *max_line))
-        .find(|x| {
-            // println!("Finding {x}");
-            other_lines
-                .iter()
-                .all(|(idx, y)| (x - max_idx as u64 + *idx as u64) % **y == 0)
-        })
-        .unwrap()
-        - max_idx as u64
+        for timestamp in (current_solution..u64::MAX).step_by(step_size as usize) {
+            if (timestamp + offset as u64) % bus_id == 0 {
+                current_solution = timestamp;
+                step_size *= bus_id;
+                break;
+            }
+        }
+    }
+
+    current_solution
 }
 
 fn parse(input: &str) -> IResult<&str, (u64, Vec<u64>)> {
@@ -120,16 +118,16 @@ mod tests {
     #[test]
     fn test_part_two_testdata() -> Result<()> {
         let (_, lines) = parse_input(TESTDATA)?;
-        assert_eq!(1068781, part_two(1, &lines));
+        assert_eq!(1068781, part_two(&lines));
 
         Ok(())
     }
 
-    // #[test]
-    // fn test_part_two() -> Result<()> {
-    //     let (_, lines) = parse_input(DATA)?;
-    //     assert_eq!(415579909629976, part_two(100000000000000, &lines));
-    //
-    //     Ok(())
-    // }
+    #[test]
+    fn test_part_two() -> Result<()> {
+        let (_, lines) = parse_input(DATA)?;
+        assert_eq!(415579909629976, part_two(&lines));
+
+        Ok(())
+    }
 }
