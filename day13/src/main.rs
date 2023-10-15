@@ -43,26 +43,25 @@ fn next_multiple(target: u64, factor: u64) -> u64 {
 }
 
 fn part_two(bus_ids: &[u64]) -> u64 {
-    // Convert "17,x,13,19" to [17, 0, 13, 19]
-    let mut current_solution = 0;
-    let mut step_size: u64 = 1;
-
-    // Insight here is that each previously found pattern
-    // repeats itself every Least common multiple (LCM) steps
-    // and LCM of primes is their product (Chinese Remainder Theorem)
-    for (offset, bus_id) in bus_ids.iter().enumerate() {
-        if *bus_id == 0 {
-            continue;
-        }
-
-        for timestamp in (current_solution..u64::MAX).step_by(step_size as usize) {
-            if (timestamp + offset as u64) % bus_id == 0 {
-                current_solution = timestamp;
-                step_size *= bus_id;
-                break;
-            }
-        }
-    }
+    let (current_solution, _) = bus_ids
+        .iter()
+        .enumerate()
+        .filter(|(_, bus_id)| **bus_id != 0)
+        .fold(
+            (0u64, 1u64),
+            |(current_solution, step_size), (offset, bus_id)| {
+                (current_solution..u64::MAX)
+                    .step_by(step_size as usize)
+                    .find_map(|timestamp| {
+                        if (timestamp + offset as u64) % bus_id == 0 {
+                            Some((timestamp, step_size * bus_id))
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap()
+            },
+        );
 
     current_solution
 }
