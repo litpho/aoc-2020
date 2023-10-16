@@ -3,13 +3,10 @@ use std::collections::HashMap;
 use anyhow::Result;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
-    character::{
-        complete::one_of,
-        complete::{self, line_ending},
-    },
+    bytes::complete::{is_a, tag},
+    character::complete::{self, line_ending},
     combinator::map,
-    multi::{many1, separated_list1},
+    multi::separated_list1,
     sequence::{preceded, tuple},
     IResult,
 };
@@ -33,14 +30,14 @@ fn main() -> Result<()> {
 }
 
 fn part_one(input: &[Instruction]) -> u64 {
-    let mut mem: HashMap<u32, u64> = HashMap::new();
-    let mut mask: Mask = Mask::new(&[]);
+    let mut mem: HashMap<u64, u64> = HashMap::new();
+    let mut mask: Mask = Mask::new("");
     input.iter().for_each(|instruction| match instruction {
         Instruction::Mask(m) => {
             mask = m.clone();
         }
         Instruction::Mem { idx, value } => {
-            let val = (*value | mask.or) & mask.and;
+            let val = (*value | mask.ones) & mask.zeroes;
             mem.insert(*idx, val);
         }
     });
@@ -48,38 +45,74 @@ fn part_one(input: &[Instruction]) -> u64 {
     mem.values().sum()
 }
 
-fn part_two(_input: &[Instruction]) -> u64 {
-    todo!()
+fn part_two(input: &[Instruction]) -> u64 {
+    let mut mem: HashMap<u64, u64> = HashMap::new();
+    let mut mask: Mask = Mask::new("");
+    input.iter().for_each(|instruction| match instruction {
+        Instruction::Mask(m) => {
+            mask = m.clone();
+        }
+        Instruction::Mem { idx, value } => mask.calc_addresses(*idx).iter().for_each(|address| {
+            mem.insert(*address, *value);
+        }),
+    });
+
+    mem.values().sum()
 }
 
 #[derive(Clone, Debug)]
 struct Mask {
-    and: u64,
-    or: u64,
+    raw: String,
+    zeroes: u64,
+    ones: u64,
 }
 
 impl Mask {
-    pub fn new(v: &[char]) -> Self {
-        let (or, and) = v.iter().rev().enumerate().filter(|(_, c)| **c != 'X').fold(
-            (0, 0),
-            |(or, and), (idx, c)| {
+    pub fn new<T: Into<String>>(v: T) -> Self {
+        let raw = v.into();
+        let (zeroes, ones) = raw
+            .chars()
+            .rev()
+            .enumerate()
+            .filter(|(_, c)| *c != 'X')
+            .fold((0, 0), |(zeroes, ones), (idx, c)| {
                 let add = 1 << idx;
-                if *c == '0' {
-                    (or, and + add)
+                if c == '0' {
+                    (zeroes + add, ones)
                 } else {
-                    (or + add, and)
+                    (zeroes, ones + add)
                 }
-            },
-        );
+            });
 
-        Self { or, and: !and }
+        Self {
+            raw,
+            ones,
+            zeroes: !zeroes,
+        }
+    }
+
+    pub fn calc_addresses(&self, value: u64) -> Vec<u64> {
+        let val = value | self.ones;
+        self.raw
+            .chars()
+            .rev()
+            .enumerate()
+            .filter(|(_, c)| *c == 'X')
+            .fold(vec![val], |v, (idx, _)| {
+                v.iter()
+                    .flat_map(|x| {
+                        let pos = 1 << idx;
+                        vec![x & !pos, x | pos]
+                    })
+                    .collect::<Vec<u64>>()
+            })
     }
 }
 
 #[derive(Debug)]
 enum Instruction {
     Mask(Mask),
-    Mem { idx: u32, value: u64 },
+    Mem { idx: u64, value: u64 },
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Instruction>> {
@@ -92,17 +125,17 @@ fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
 
 fn parse_mask(input: &str) -> IResult<&str, Instruction> {
     map(preceded(tag("mask = "), parse_mask_value), |s| {
-        Instruction::Mask(Mask::new(&s))
+        Instruction::Mask(Mask::new(s))
     })(input)
 }
 
-fn parse_mask_value(input: &str) -> IResult<&str, Vec<char>> {
-    many1(one_of("X01"))(input)
+fn parse_mask_value(input: &str) -> IResult<&str, &str> {
+    is_a("X01")(input)
 }
 
 fn parse_mem(input: &str) -> IResult<&str, Instruction> {
     map(
-        tuple((tag("mem["), complete::u32, tag("] = "), complete::u64)),
+        tuple((tag("mem["), complete::u64, tag("] = "), complete::u64)),
         |(_, idx, _, value)| Instruction::Mem { idx, value },
     )(input)
 }
@@ -133,19 +166,10 @@ mod tests {
         Ok(())
     }
 
-    // #[test]
-    // fn test_part_two_testdata() -> Result<()> {
-    //     let (_, lines) = parse_input(TESTDATA)?;
-    //     assert_eq!(1068781, part_two(&lines));
-    //
-    //     Ok(())
-    // }
-    //
-    // #[test]
-    // fn test_part_two() -> Result<()> {
-    //     let (_, lines) = parse_input(DATA)?;
-    //     assert_eq!(415579909629976, part_two(&lines));
-    //
-    //     Ok(())
-    // }
+    #[test]
+    fn test_part_two() -> Result<()> {
+        assert_eq!(4355897790573, part_two(&parse_input(DATA)?));
+
+        Ok(())
+    }
 }
