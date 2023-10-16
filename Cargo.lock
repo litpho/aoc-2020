@@ -57,6 +57,15 @@ name = "day13"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "nom",
+ "took",
+]
+
+[[package]]
+name = "day14"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "itertools",
  "nom",
  "took",
@@ -95,7 +104,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bit-vec",
- "itertools",
  "nom",
  "took",
 ]
