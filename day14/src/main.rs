@@ -47,7 +47,7 @@ fn part_one(input: &[Instruction]) -> u64 {
 
 fn part_two(input: &[Instruction]) -> u64 {
     let mut mem: HashMap<u64, u64> = HashMap::new();
-    let mut mask: Mask = Mask::new("");
+    let mut mask: Mask = Mask::default();
     input.iter().for_each(|instruction| match instruction {
         Instruction::Mask(m) => {
             mask = m.clone();
@@ -60,7 +60,7 @@ fn part_two(input: &[Instruction]) -> u64 {
     mem.values().sum()
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 struct Mask {
     raw: String,
     zeroes: u64,
