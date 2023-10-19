@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+#![feature(new_uninit)]
 
 use anyhow::Result;
 use nom::{
@@ -37,12 +37,13 @@ fn part_two(input: &[u32]) -> u32 {
     mine.into_iter().take(30000000).last().unwrap()
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct MyGenerator {
     start: Vec<u32>,
     idx: usize,
     last: Option<u32>,
-    map: HashMap<u32, u32>,
+    // map: HashMap<u32, u32>,
+    map: Box<[u32]>,
 }
 
 impl Iterator for MyGenerator {
@@ -52,7 +53,7 @@ impl Iterator for MyGenerator {
         let next_item = self.get_next_item();
 
         if let Some(last) = self.last {
-            self.map.insert(last, self.idx as u32);
+            self.map[last as usize] = self.idx as u32;
         }
 
         self.last = Some(next_item);
@@ -64,9 +65,13 @@ impl Iterator for MyGenerator {
 
 impl MyGenerator {
     pub fn new<T: Into<Vec<u32>>>(start: T) -> Self {
+        // 30000000
+        let map = unsafe { Box::<[u32]>::new_zeroed_slice(30000000).assume_init() };
         Self {
             start: start.into(),
-            ..Default::default()
+            map,
+            idx: 0,
+            last: None,
         }
     }
 
@@ -75,9 +80,9 @@ impl MyGenerator {
             return self.start[self.idx];
         }
 
-        match self.map.get(&self.last.unwrap()) {
-            None => 0,
-            Some(prev) => self.idx as u32 - *prev,
+        match self.map[self.last.unwrap() as usize] {
+            0 => 0,
+            prev => self.idx as u32 - prev,
         }
     }
 }
