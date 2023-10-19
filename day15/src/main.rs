@@ -89,8 +89,6 @@ fn parse(input: &str) -> IResult<&str, Vec<u32>> {
 fn parse_input(input: &'static str) -> Result<Vec<u32>> {
     let (_, input) = parse(input)?;
 
-    println!("{:?}", input);
-
     Ok(input)
 }
 
