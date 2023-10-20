@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use nom::{
     branch::alt,
     bytes::complete::take_while,
     character::complete::{alpha1, char, line_ending, space1},
-    combinator::map,
+    combinator::map_res,
     multi::separated_list1,
     sequence::{pair, separated_pair},
     AsChar, IResult,
@@ -49,18 +49,20 @@ enum Key {
     Cid,
 }
 
-impl From<&str> for Key {
-    fn from(value: &str) -> Self {
+impl TryFrom<&str> for Key {
+    type Error = Error;
+
+    fn try_from(value: &str) -> std::result::Result<Self, Self::Error> {
         match value {
-            "byr" => Key::Byr,
-            "iyr" => Key::Iyr,
-            "eyr" => Key::Eyr,
-            "hgt" => Key::Hgt,
-            "hcl" => Key::Hcl,
-            "ecl" => Key::Ecl,
-            "pid" => Key::Pid,
-            "cid" => Key::Cid,
-            _ => panic!("Value not found"),
+            "byr" => Ok(Key::Byr),
+            "iyr" => Ok(Key::Iyr),
+            "eyr" => Ok(Key::Eyr),
+            "hgt" => Ok(Key::Hgt),
+            "hcl" => Ok(Key::Hcl),
+            "ecl" => Ok(Key::Ecl),
+            "pid" => Ok(Key::Pid),
+            "cid" => Ok(Key::Cid),
+            _ => Err(Error::msg("Value not found")),
         }
     }
 }
@@ -70,16 +72,23 @@ struct Passport {
 }
 
 impl Passport {
-    pub fn new(pairs: Vec<(&str, &str)>) -> Self {
-        let data = pairs
+    pub fn try_new(pairs: Vec<(&str, &str)>) -> Result<Self> {
+        let result = pairs
             .iter()
             .map(|(key, value)| {
-                let key: Key = (*key).into();
-                (key, String::from(*value))
+                let key: Key = (*key).try_into()?;
+                let value = value.to_string();
+                Ok((key, value))
             })
-            .collect::<HashMap<Key, String>>();
+            .collect::<Result<Vec<(Key, String)>>>();
 
-        Passport { data }
+        match result {
+            Ok(vec) => {
+                let data = vec.into_iter().collect::<HashMap<Key, String>>();
+                Ok(Self { data })
+            }
+            Err(e) => Err(e),
+        }
     }
 
     pub fn is_complete(&self) -> bool {
@@ -161,9 +170,9 @@ fn parse(input: &str) -> IResult<&str, Vec<Passport>> {
 }
 
 fn parse_passport(input: &str) -> IResult<&str, Passport> {
-    map(
+    map_res(
         separated_list1(alt((space1, line_ending)), parse_key_value),
-        Passport::new,
+        Passport::try_new,
     )(input)
 }
 

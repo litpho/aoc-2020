@@ -46,7 +46,7 @@ fn traverse(input: &[Vec<bool>], x_step: usize, y_step: usize) -> usize {
         .skip(y_step)
         .step_by(y_step)
         .fold((0, 0), |(x, count), line| {
-            let x = (x + x_step).rem_euclid(line_length);
+            let x = (x + x_step) % line_length;
             let count = if line[x] { count + 1 } else { count };
             (x, count)
         });

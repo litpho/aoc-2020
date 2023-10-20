@@ -1,8 +1,10 @@
 use anyhow::Result;
 use bit_vec::BitVec;
 use nom::{
-    bytes::complete::take, character::complete::line_ending, combinator::map,
-    multi::separated_list1, IResult,
+    character::{complete::line_ending, complete::one_of},
+    combinator::map,
+    multi::{many1, separated_list1},
+    IResult,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -46,9 +48,9 @@ fn parse(input: &str) -> IResult<&str, Vec<u16>> {
 }
 
 fn parse_line(input: &str) -> IResult<&str, u16> {
-    map(take(10usize), |x: &str| {
-        let bin_string = x
-            .chars()
+    map(many1(one_of("FBLR")), |v: Vec<char>| {
+        let bin_string = v
+            .into_iter()
             .map(|c| if c == 'L' || c == 'F' { '0' } else { '1' })
             .collect::<String>();
         u16::from_str_radix(&bin_string, 2).unwrap()

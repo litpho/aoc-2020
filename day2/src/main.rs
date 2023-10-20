@@ -57,15 +57,10 @@ struct Line {
 }
 
 impl Line {
-    pub fn new(
-        first_number: usize,
-        second_number: usize,
-        letter: char,
-        password: Vec<char>,
-    ) -> Self {
+    pub fn new(first_number: u8, second_number: u8, letter: char, password: Vec<char>) -> Self {
         Self {
-            first_number,
-            second_number,
+            first_number: first_number as usize,
+            second_number: second_number as usize,
             letter,
             password,
         }
@@ -83,11 +78,8 @@ fn parse_line(input: &str) -> IResult<&str, Line> {
     )(input)
 }
 
-fn parse_numbers(input: &str) -> IResult<&str, (usize, usize)> {
-    map(
-        separated_pair(complete::u8, complete::char('-'), complete::u8),
-        |(a, b)| (a as usize, b as usize),
-    )(input)
+fn parse_numbers(input: &str) -> IResult<&str, (u8, u8)> {
+    separated_pair(complete::u8, complete::char('-'), complete::u8)(input)
 }
 
 fn parse_letter(input: &str) -> IResult<&str, char> {
