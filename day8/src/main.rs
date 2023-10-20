@@ -11,7 +11,7 @@ use nom::{
 };
 
 const DATA: &str = include_str!("input.txt");
-const DATA2: &str = include_str!("input3.txt");
+const DATA2: &str = include_str!("input2.txt");
 
 fn main() -> Result<()> {
     let (took, result) = took::took(|| parse_input(DATA));
