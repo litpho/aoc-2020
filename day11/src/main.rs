@@ -53,20 +53,19 @@ fn calculate(input: &[Vec<Loc>], empty_limit: usize, limit_to_one: bool) -> usiz
 
 fn next_round(input: &[Vec<Loc>], empty_limit: usize, limit_to_one: bool) -> Vec<Vec<Loc>> {
     let limits = Limits::new(input[0].len(), input.len(), empty_limit, limit_to_one);
-    let mut output = vec![];
-    for (y, vec) in input.iter().enumerate() {
-        let mut row = vec![];
-        for (x, loc) in vec.iter().enumerate() {
-            let loc = match loc {
-                Loc::Floor => Loc::Floor,
-                _ => limits.determine_loc(input, x, y, loc),
-            };
-            row.push(loc);
-        }
-        output.push(row);
-    }
-
-    output
+    input
+        .iter()
+        .enumerate()
+        .map(|(y, vec)| {
+            vec.iter()
+                .enumerate()
+                .map(|(x, loc)| match loc {
+                    Loc::Floor => Loc::Floor,
+                    _ => limits.determine_loc(input, x, y, loc),
+                })
+                .collect::<Vec<Loc>>()
+        })
+        .collect::<Vec<Vec<Loc>>>()
 }
 
 struct Limits {
