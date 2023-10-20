@@ -6,7 +6,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{self, alpha1, line_ending},
-    combinator::{map, value},
+    combinator::{map, recognize, value},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
     IResult,
@@ -58,7 +58,6 @@ fn traverse(
     current: Vec<String>,
     keys: Vec<String>,
 ) -> Vec<Vec<String>> {
-    println!("Traversing for {:?}", keys);
     if keys.is_empty() {
         return vec![current];
     }
@@ -127,27 +126,26 @@ impl BagRuleItem {
 
 fn parse(input: &str) -> IResult<&str, HashMap<String, Vec<BagRuleItem>>> {
     map(separated_list1(line_ending, parse_bag_rule), |v| {
-        v.into_iter().collect::<HashMap<String, Vec<BagRuleItem>>>()
+        v.into_iter()
+            .map(|(key, value)| (key.to_string(), value))
+            .collect::<HashMap<String, Vec<BagRuleItem>>>()
     })(input)
 }
 
-fn parse_bag_rule(input: &str) -> IResult<&str, (String, Vec<BagRuleItem>)> {
+fn parse_bag_rule(input: &str) -> IResult<&str, (&str, Vec<BagRuleItem>)> {
     map(
         terminated(
             separated_pair(parse_bag_name, tag(" contain "), parse_contains),
             tag("."),
         ),
-        |(name, contains)| (name.to_string(), contains),
+        |(name, contains)| (name, contains),
     )(input)
 }
 
-fn parse_bag_name(input: &str) -> IResult<&str, String> {
-    map(
-        terminated(
-            separated_pair(alpha1, tag(" "), alpha1),
-            alt((tag(" bags"), tag(" bag"))),
-        ),
-        |(s, s2)| format!("{s} {s2}"),
+fn parse_bag_name(input: &str) -> IResult<&str, &str> {
+    terminated(
+        recognize(separated_pair(alpha1, tag(" "), alpha1)),
+        alt((tag(" bags"), tag(" bag"))),
     )(input)
 }
 
@@ -162,15 +160,15 @@ fn parse_contains_none(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
 fn parse_contains_some(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
     map(
         separated_list1(tag(", "), parse_amount_plus_bag),
-        |v: Vec<(u32, String)>| {
+        |v: Vec<(u32, &str)>| {
             v.iter()
-                .map(|(amount, name)| BagRuleItem::new(*amount, name))
+                .map(|(amount, name)| BagRuleItem::new(*amount, *name))
                 .collect::<Vec<BagRuleItem>>()
         },
     )(input)
 }
 
-fn parse_amount_plus_bag(input: &str) -> IResult<&str, (u32, String)> {
+fn parse_amount_plus_bag(input: &str) -> IResult<&str, (u32, &str)> {
     separated_pair(complete::u32, tag(" "), parse_bag_name)(input)
 }
 
