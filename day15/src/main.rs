@@ -26,13 +26,13 @@ fn main() -> Result<()> {
 }
 
 fn part_one(input: &[u32]) -> u32 {
-    let mine = MyGenerator::new(input);
+    let mine = MyGenerator::new(input, 2020);
 
     mine.into_iter().take(2020).last().unwrap()
 }
 
 fn part_two(input: &[u32]) -> u32 {
-    let mine = MyGenerator::new(input);
+    let mine = MyGenerator::new(input, 30000000);
 
     mine.into_iter().take(30000000).last().unwrap()
 }
@@ -42,7 +42,6 @@ struct MyGenerator {
     start: Vec<u32>,
     idx: usize,
     last: Option<u32>,
-    // map: HashMap<u32, u32>,
     map: Box<[u32]>,
 }
 
@@ -64,9 +63,8 @@ impl Iterator for MyGenerator {
 }
 
 impl MyGenerator {
-    pub fn new<T: Into<Vec<u32>>>(start: T) -> Self {
-        // 30000000
-        let map = unsafe { Box::<[u32]>::new_zeroed_slice(30000000).assume_init() };
+    pub fn new<T: Into<Vec<u32>>>(start: T, len: usize) -> Self {
+        let map = unsafe { Box::<[u32]>::new_zeroed_slice(len).assume_init() };
         Self {
             start: start.into(),
             map,
