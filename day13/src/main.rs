@@ -31,7 +31,6 @@ fn part_one(departure: u64, lines: &[u64]) -> u64 {
     let (line, next) = lines
         .iter()
         .filter(|line| **line != 0)
-        // .map(|line| (line, next_multiple(departure, *line)))
         .map(|line| (line, departure.next_multiple_of(*line)))
         .min_by(|(_, a), (_, b)| a.cmp(b))
         .unwrap();
