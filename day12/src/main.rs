@@ -57,13 +57,16 @@ fn new_position_one(pos: Position, instruction: &Instruction) -> Result<Position
 }
 
 fn part_two(input: &[Instruction]) -> Result<usize> {
-    let mut ship = Position::new(0, 0, Facing::North);
-    let mut waypoint = Position::new(10, 1, Facing::North);
-    for i in input {
-        let result = new_positions_two(ship, waypoint, i)?;
-        ship = result.0;
-        waypoint = result.1;
-    }
+    let (ship, _) = input.iter().try_fold(
+        (
+            Position::new(0, 0, Facing::North),
+            Position::new(10, 1, Facing::North),
+        ),
+        |(ship, waypoint), i| match new_positions_two(ship, waypoint, i) {
+            Ok(ret_val) => Ok(ret_val),
+            Err(e) => Err(e),
+        },
+    )?;
 
     Ok(ship.x.unsigned_abs() + ship.y.unsigned_abs())
 }
