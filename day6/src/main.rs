@@ -1,11 +1,11 @@
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
-    IResult, Parser,
     character::complete::{alpha1, line_ending},
     combinator::map,
     multi::separated_list1,
     sequence::pair,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

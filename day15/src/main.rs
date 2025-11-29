@@ -1,8 +1,8 @@
 use anyhow::Result;
 use nom::{
-    IResult, Parser,
     character::complete::{self},
     multi::separated_list1,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

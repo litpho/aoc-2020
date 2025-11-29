@@ -1,10 +1,10 @@
 use anyhow::{Error, Result};
 use nom::{
-    IResult, Parser,
     character::complete::{self, line_ending, one_of},
     combinator::map,
     multi::separated_list1,
     sequence::pair,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

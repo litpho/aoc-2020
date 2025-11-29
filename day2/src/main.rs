@@ -1,11 +1,11 @@
 use anyhow::Result;
 use nom::{
-    IResult, Parser,
     bytes::complete::tag,
     character::complete::{self, alpha1, anychar, line_ending, space1},
     combinator::map,
     multi::separated_list1,
     sequence::{delimited, separated_pair},
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

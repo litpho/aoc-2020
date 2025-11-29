@@ -1,13 +1,13 @@
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
-    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{self, alpha1, line_ending},
     combinator::{map, recognize, value},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
