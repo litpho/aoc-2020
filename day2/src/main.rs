@@ -4,8 +4,8 @@ use nom::{
     character::complete::{self, alpha1, anychar, line_ending, space1},
     combinator::map,
     multi::separated_list1,
-    sequence::{delimited, separated_pair, tuple},
-    IResult,
+    sequence::{delimited, separated_pair},
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -68,26 +68,27 @@ impl Line {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Line>> {
-    separated_list1(line_ending, parse_line)(input)
+    separated_list1(line_ending, parse_line).parse(input)
 }
 
 fn parse_line(input: &str) -> IResult<&str, Line> {
     map(
-        tuple((parse_numbers, parse_letter, parse_password)),
+        (parse_numbers, parse_letter, parse_password),
         |(numbers, letter, password)| Line::new(numbers.0, numbers.1, letter, password),
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_numbers(input: &str) -> IResult<&str, (u8, u8)> {
-    separated_pair(complete::u8, complete::char('-'), complete::u8)(input)
+    separated_pair(complete::u8, complete::char('-'), complete::u8).parse(input)
 }
 
 fn parse_letter(input: &str) -> IResult<&str, char> {
-    delimited(space1, anychar, tag(": "))(input)
+    delimited(space1, anychar, tag(": ")).parse(input)
 }
 
 fn parse_password(input: &str) -> IResult<&str, Vec<char>> {
-    map(alpha1, |a: &str| a.chars().collect())(input)
+    map(alpha1, |a: &str| a.chars().collect()).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Line>> {

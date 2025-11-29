@@ -4,7 +4,7 @@ use nom::{
     character::{complete::line_ending, complete::one_of},
     combinator::map,
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -44,7 +44,7 @@ fn part_two(input: &[u16]) -> u16 {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<u16>> {
-    separated_list1(line_ending, parse_line)(input)
+    separated_list1(line_ending, parse_line).parse(input)
 }
 
 fn parse_line(input: &str) -> IResult<&str, u16> {
@@ -54,7 +54,8 @@ fn parse_line(input: &str) -> IResult<&str, u16> {
             .map(|c| if c == 'L' || c == 'F' { '0' } else { '1' })
             .collect::<String>();
         u16::from_str_radix(&bin_string, 2).unwrap()
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<u16>> {

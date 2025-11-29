@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::{Error, Result};
 use nom::{
     branch::alt,
@@ -8,8 +6,9 @@ use nom::{
     combinator::map_res,
     multi::separated_list1,
     sequence::{pair, separated_pair},
-    AsChar, IResult,
+    AsChar, IResult, Parser,
 };
+use std::collections::HashMap;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -119,26 +118,26 @@ impl Passport {
     pub fn is_valid_byr(&self) -> bool {
         self.data[&Key::Byr]
             .parse::<u16>()
-            .map_or(false, |byr| (1920u16..=2002u16).contains(&byr))
+            .is_ok_and(|byr| (1920u16..=2002u16).contains(&byr))
     }
 
     pub fn is_valid_iyr(&self) -> bool {
         self.data[&Key::Iyr]
             .parse::<u16>()
-            .map_or(false, |iyr| (2010u16..=2020u16).contains(&iyr))
+            .is_ok_and(|iyr| (2010u16..=2020u16).contains(&iyr))
     }
 
     pub fn is_valid_eyr(&self) -> bool {
         self.data[&Key::Eyr]
             .parse::<u16>()
-            .map_or(false, |eyr| (2020u16..=2030u16).contains(&eyr))
+            .is_ok_and(|eyr| (2020u16..=2030u16).contains(&eyr))
     }
 
     pub fn is_valid_hgt(&self) -> bool {
         let hgt = self.data[&Key::Hgt].as_str();
         let (height, unit) = hgt.split_at(hgt.len() - 2);
 
-        height.parse::<u16>().map_or(false, |h| {
+        height.parse::<u16>().is_ok_and(|h| {
             if unit == "cm" {
                 (150u16..=193u16).contains(&h)
             } else if unit == "in" {
@@ -152,7 +151,7 @@ impl Passport {
     pub fn is_valid_hcl(&self) -> bool {
         self.data[&Key::Hcl]
             .strip_prefix('#')
-            .map_or(false, |hcl| u32::from_str_radix(hcl, 16).is_ok())
+            .is_some_and(|hcl| u32::from_str_radix(hcl, 16).is_ok())
     }
 
     pub fn is_valid_ecl(&self) -> bool {
@@ -166,18 +165,19 @@ impl Passport {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Passport>> {
-    separated_list1(pair(line_ending, line_ending), parse_passport)(input)
+    separated_list1(pair(line_ending, line_ending), parse_passport).parse(input)
 }
 
 fn parse_passport(input: &str) -> IResult<&str, Passport> {
     map_res(
         separated_list1(alt((space1, line_ending)), parse_key_value),
         Passport::try_new,
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_key_value(input: &str) -> IResult<&str, (&str, &str)> {
-    separated_pair(alpha1, char(':'), parse_value)(input)
+    separated_pair(alpha1, char(':'), parse_value).parse(input)
 }
 
 fn parse_value(input: &str) -> IResult<&str, &str> {

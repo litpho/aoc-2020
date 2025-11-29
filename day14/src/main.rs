@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
 use nom::{
     branch::alt,
@@ -7,9 +5,10 @@ use nom::{
     character::complete::{self, line_ending},
     combinator::map,
     multi::separated_list1,
-    sequence::{preceded, tuple},
-    IResult,
+    sequence::preceded,
+    IResult, Parser,
 };
+use std::collections::HashMap;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -116,17 +115,18 @@ enum Instruction {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Instruction>> {
-    separated_list1(line_ending, parse_instruction)(input)
+    separated_list1(line_ending, parse_instruction).parse(input)
 }
 
 fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
-    alt((parse_mask, parse_mem))(input)
+    alt((parse_mask, parse_mem)).parse(input)
 }
 
 fn parse_mask(input: &str) -> IResult<&str, Instruction> {
     map(preceded(tag("mask = "), parse_mask_value), |s| {
         Instruction::Mask(Mask::new(s))
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_mask_value(input: &str) -> IResult<&str, &str> {
@@ -135,9 +135,10 @@ fn parse_mask_value(input: &str) -> IResult<&str, &str> {
 
 fn parse_mem(input: &str) -> IResult<&str, Instruction> {
     map(
-        tuple((tag("mem["), complete::u64, tag("] = "), complete::u64)),
+        (tag("mem["), complete::u64, tag("] = "), complete::u64),
         |(_, idx, _, value)| Instruction::Mem { idx, value },
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Instruction>> {

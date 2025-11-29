@@ -4,7 +4,7 @@ use nom::{
     character::complete::{self, line_ending},
     combinator::value,
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 use std::iter;
 
@@ -161,27 +161,27 @@ enum Loc {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Vec<Loc>>> {
-    separated_list1(line_ending, parse_row)(input)
+    separated_list1(line_ending, parse_row).parse(input)
 }
 
 fn parse_row(input: &str) -> IResult<&str, Vec<Loc>> {
-    many1(parse_loc)(input)
+    many1(parse_loc).parse(input)
 }
 
 fn parse_loc(input: &str) -> IResult<&str, Loc> {
-    alt((parse_floor, parse_empty, parse_occupied))(input)
+    alt((parse_floor, parse_empty, parse_occupied)).parse(input)
 }
 
 fn parse_floor(input: &str) -> IResult<&str, Loc> {
-    value(Loc::Floor, complete::char('.'))(input)
+    value(Loc::Floor, complete::char('.')).parse(input)
 }
 
 fn parse_empty(input: &str) -> IResult<&str, Loc> {
-    value(Loc::Empty, complete::char('L'))(input)
+    value(Loc::Empty, complete::char('L')).parse(input)
 }
 
 fn parse_occupied(input: &str) -> IResult<&str, Loc> {
-    value(Loc::Occupied, complete::char('#'))(input)
+    value(Loc::Occupied, complete::char('#')).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Vec<Loc>>> {

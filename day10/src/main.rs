@@ -1,12 +1,11 @@
-use std::{cmp::min, collections::HashMap};
-
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
     character::complete::{self, line_ending},
     multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
+use std::{cmp::min, collections::HashMap};
 
 const DATA: &str = include_str!("input.txt");
 
@@ -80,7 +79,7 @@ fn calculate(input: &[u8], map: &HashMap<u8, Vec<u8>>) -> u64 {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<u8>> {
-    separated_list1(line_ending, complete::u8)(input)
+    separated_list1(line_ending, complete::u8).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<u8>> {

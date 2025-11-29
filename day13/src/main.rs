@@ -6,7 +6,7 @@ use nom::{
     combinator::value,
     multi::separated_list1,
     sequence::separated_pair,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -49,7 +49,7 @@ fn part_two(bus_ids: &[u64]) -> u64 {
                 (current_solution..u64::MAX)
                     .step_by(step_size as usize)
                     .find_map(|timestamp| {
-                        if (timestamp + offset as u64) % bus_id == 0 {
+                        if (timestamp + offset as u64).is_multiple_of(*bus_id) {
                             Some((timestamp, step_size * bus_id))
                         } else {
                             None
@@ -63,7 +63,7 @@ fn part_two(bus_ids: &[u64]) -> u64 {
 }
 
 fn parse(input: &str) -> IResult<&str, (u64, Vec<u64>)> {
-    separated_pair(parse_departure, line_ending, parse_buses)(input)
+    separated_pair(parse_departure, line_ending, parse_buses).parse(input)
 }
 
 fn parse_departure(input: &str) -> IResult<&str, u64> {
@@ -71,11 +71,11 @@ fn parse_departure(input: &str) -> IResult<&str, u64> {
 }
 
 fn parse_buses(input: &str) -> IResult<&str, Vec<u64>> {
-    separated_list1(complete::char(','), alt((parse_x, parse_busline_number)))(input)
+    separated_list1(complete::char(','), alt((parse_x, parse_busline_number))).parse(input)
 }
 
 fn parse_x(input: &str) -> IResult<&str, u64> {
-    value(0, tag("x"))(input)
+    value(0, tag("x")).parse(input)
 }
 
 fn parse_busline_number(input: &str) -> IResult<&str, u64> {

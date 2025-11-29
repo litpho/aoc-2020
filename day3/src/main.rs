@@ -3,7 +3,7 @@ use nom::{
     character::{complete::line_ending, complete::one_of},
     combinator::map,
     multi::{many1, separated_list1},
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -55,15 +55,15 @@ fn traverse(input: &[Vec<bool>], x_step: usize, y_step: usize) -> usize {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Vec<bool>>> {
-    separated_list1(line_ending, parse_line)(input)
+    separated_list1(line_ending, parse_line).parse(input)
 }
 
 fn parse_line(input: &str) -> IResult<&str, Vec<bool>> {
-    many1(parse_position)(input)
+    many1(parse_position).parse(input)
 }
 
 fn parse_position(input: &str) -> IResult<&str, bool> {
-    map(one_of(".#"), |x| x == '#')(input)
+    map(one_of(".#"), |x| x == '#').parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Vec<bool>>> {

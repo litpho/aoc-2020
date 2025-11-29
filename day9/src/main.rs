@@ -3,7 +3,7 @@ use itertools::Itertools;
 use nom::{
     character::complete::{self, line_ending},
     multi::separated_list1,
-    IResult, Slice,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -43,8 +43,7 @@ fn part_two(input: &[u32], preamble: usize) -> u32 {
             }
         })
         .map(|(bottom_idx, top_idx)| {
-            let (min, max) = input
-                .slice(bottom_idx..top_idx)
+            let (min, max) = input[bottom_idx..top_idx]
                 .iter()
                 .minmax()
                 .into_option()
@@ -74,8 +73,7 @@ fn find_number(input: &[u32], preamble: usize) -> (usize, &u32) {
         .skip(preamble)
         .enumerate()
         .find(|(idx, x)| {
-            !input
-                .slice(*idx..(idx + preamble))
+            !input[*idx..(idx + preamble)]
                 .iter()
                 .permutations(2)
                 .any(|v| **x == v[0] + v[1])
@@ -84,7 +82,7 @@ fn find_number(input: &[u32], preamble: usize) -> (usize, &u32) {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<u32>> {
-    separated_list1(line_ending, complete::u32)(input)
+    separated_list1(line_ending, complete::u32).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<u32>> {

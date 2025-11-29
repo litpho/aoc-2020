@@ -3,7 +3,7 @@ use itertools::Itertools;
 use nom::{
     character::complete::{self, line_ending},
     multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -43,7 +43,7 @@ fn part_two(input: &[u32]) -> u32 {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<u32>> {
-    separated_list1(line_ending, complete::u32)(input)
+    separated_list1(line_ending, complete::u32).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<u32>> {

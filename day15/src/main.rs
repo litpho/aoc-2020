@@ -1,10 +1,8 @@
-#![feature(new_uninit)]
-
 use anyhow::Result;
 use nom::{
     character::complete::{self},
     multi::separated_list1,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -86,7 +84,7 @@ impl MyGenerator {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<u32>> {
-    separated_list1(complete::char(','), complete::u32)(input)
+    separated_list1(complete::char(','), complete::u32).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<u32>> {

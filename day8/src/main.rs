@@ -7,7 +7,7 @@ use nom::{
     combinator::{map, value},
     multi::separated_list1,
     sequence::preceded,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -103,27 +103,29 @@ enum Instruction {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Instruction>> {
-    separated_list1(line_ending, parse_line)(input)
+    separated_list1(line_ending, parse_line).parse(input)
 }
 
 fn parse_line(input: &str) -> IResult<&str, Instruction> {
-    alt((parse_acc, parse_jmp, parse_nop))(input)
+    alt((parse_acc, parse_jmp, parse_nop)).parse(input)
 }
 
 fn parse_acc(input: &str) -> IResult<&str, Instruction> {
     map(preceded(tag("acc "), complete::i16), |val: i16| {
         Instruction::Acc(val)
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_jmp(input: &str) -> IResult<&str, Instruction> {
     map(preceded(tag("jmp "), complete::i16), |val: i16| {
         Instruction::Jmp(val)
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_nop(input: &str) -> IResult<&str, Instruction> {
-    value(Instruction::Nop, preceded(tag("nop "), complete::i16))(input)
+    value(Instruction::Nop, preceded(tag("nop "), complete::i16)).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Instruction>> {

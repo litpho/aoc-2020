@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
@@ -9,8 +7,9 @@ use nom::{
     combinator::{map, recognize, value},
     multi::separated_list1,
     sequence::{separated_pair, terminated},
-    IResult,
+    IResult, Parser,
 };
+use std::collections::HashMap;
 
 const DATA: &str = include_str!("input.txt");
 
@@ -129,7 +128,8 @@ fn parse(input: &str) -> IResult<&str, HashMap<String, Vec<BagRuleItem>>> {
         v.into_iter()
             .map(|(key, value)| (key.to_string(), value))
             .collect::<HashMap<String, Vec<BagRuleItem>>>()
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_bag_rule(input: &str) -> IResult<&str, (&str, Vec<BagRuleItem>)> {
@@ -139,22 +139,24 @@ fn parse_bag_rule(input: &str) -> IResult<&str, (&str, Vec<BagRuleItem>)> {
             tag("."),
         ),
         |(name, contains)| (name, contains),
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_bag_name(input: &str) -> IResult<&str, &str> {
     terminated(
         recognize(separated_pair(alpha1, tag(" "), alpha1)),
         alt((tag(" bags"), tag(" bag"))),
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_contains(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
-    alt((parse_contains_none, parse_contains_some))(input)
+    alt((parse_contains_none, parse_contains_some)).parse(input)
 }
 
 fn parse_contains_none(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
-    value(vec![], tag("no other bags"))(input)
+    value(vec![], tag("no other bags")).parse(input)
 }
 
 fn parse_contains_some(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
@@ -165,11 +167,12 @@ fn parse_contains_some(input: &str) -> IResult<&str, Vec<BagRuleItem>> {
                 .map(|(amount, name)| BagRuleItem::new(*amount, *name))
                 .collect::<Vec<BagRuleItem>>()
         },
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_amount_plus_bag(input: &str) -> IResult<&str, (u32, &str)> {
-    separated_pair(complete::u32, tag(" "), parse_bag_name)(input)
+    separated_pair(complete::u32, tag(" "), parse_bag_name).parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<HashMap<String, Vec<BagRuleItem>>> {

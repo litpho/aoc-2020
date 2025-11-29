@@ -4,7 +4,7 @@ use nom::{
     combinator::map,
     multi::separated_list1,
     sequence::pair,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -200,7 +200,7 @@ impl Facing {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Instruction>> {
-    separated_list1(line_ending, parse_instruction)(input)
+    separated_list1(line_ending, parse_instruction).parse(input)
 }
 
 fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
@@ -220,7 +220,8 @@ fn parse_instruction(input: &str) -> IResult<&str, Instruction> {
             'F' => Instruction::Forward(value as usize),
             _ => panic!("Illegal value"),
         },
-    )(input)
+    )
+    .parse(input)
 }
 
 fn parse_action(input: &str) -> IResult<&str, char> {

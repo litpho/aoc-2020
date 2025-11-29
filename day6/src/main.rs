@@ -5,7 +5,7 @@ use nom::{
     combinator::map,
     multi::separated_list1,
     sequence::pair,
-    IResult,
+    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");
@@ -55,7 +55,7 @@ fn count_letters_per_groupline(group: &[Vec<char>]) -> [usize; 26] {
 }
 
 fn parse(input: &str) -> IResult<&str, Vec<Vec<Vec<char>>>> {
-    separated_list1(pair(line_ending, line_ending), parse_group)(input)
+    separated_list1(pair(line_ending, line_ending), parse_group).parse(input)
 }
 
 fn parse_group(input: &str) -> IResult<&str, Vec<Vec<char>>> {
@@ -63,7 +63,8 @@ fn parse_group(input: &str) -> IResult<&str, Vec<Vec<char>>> {
         v.iter()
             .map(|x: &&str| x.chars().collect::<Vec<char>>())
             .collect::<Vec<Vec<char>>>()
-    })(input)
+    })
+    .parse(input)
 }
 
 fn parse_input(input: &'static str) -> Result<Vec<Vec<Vec<char>>>> {
