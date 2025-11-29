@@ -1,9 +1,9 @@
 use anyhow::Result;
 use itertools::Itertools;
 use nom::{
+    IResult, Parser,
     character::complete::{self, line_ending},
     multi::separated_list1,
-    IResult, Parser,
 };
 use std::{cmp::min, collections::HashMap};
 

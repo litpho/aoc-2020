@@ -1,12 +1,12 @@
 use anyhow::{Error, Result};
 use nom::{
+    AsChar, IResult, Parser,
     branch::alt,
     bytes::complete::take_while,
     character::complete::{alpha1, char, line_ending, space1},
     combinator::map_res,
     multi::separated_list1,
     sequence::{pair, separated_pair},
-    AsChar, IResult, Parser,
 };
 use std::collections::HashMap;
 

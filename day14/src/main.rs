@@ -1,12 +1,12 @@
 use anyhow::Result;
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::{is_a, tag},
     character::complete::{self, line_ending},
     combinator::map,
     multi::separated_list1,
     sequence::preceded,
-    IResult, Parser,
 };
 use std::collections::HashMap;
 

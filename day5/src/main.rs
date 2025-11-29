@@ -1,10 +1,10 @@
 use anyhow::Result;
 use bit_vec::BitVec;
 use nom::{
+    IResult, Parser,
     character::{complete::line_ending, complete::one_of},
     combinator::map,
     multi::{many1, separated_list1},
-    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

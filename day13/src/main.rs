@@ -1,12 +1,12 @@
 use anyhow::Result;
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{self, line_ending},
     combinator::value,
     multi::separated_list1,
     sequence::separated_pair,
-    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

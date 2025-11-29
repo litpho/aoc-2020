@@ -1,13 +1,13 @@
 use anyhow::Result;
 use bit_vec::BitVec;
 use nom::{
+    IResult, Parser,
     branch::alt,
     bytes::complete::tag,
     character::complete::{self, line_ending},
     combinator::{map, value},
     multi::separated_list1,
     sequence::preceded,
-    IResult, Parser,
 };
 
 const DATA: &str = include_str!("input.txt");

@@ -1,10 +1,10 @@
 use anyhow::Result;
 use nom::{
+    IResult, Parser,
     branch::alt,
     character::complete::{self, line_ending},
     combinator::value,
     multi::{many1, separated_list1},
-    IResult, Parser,
 };
 use std::iter;
 
