@@ -99,40 +99,40 @@ mod tests {
 
     #[test]
     fn test_part_one_testdata() -> Result<()> {
-        assert_eq!(436, part_one(&parse_input("0,3,6")?));
-        assert_eq!(1, part_one(&parse_input("1,3,2")?));
-        assert_eq!(10, part_one(&parse_input("2,1,3")?));
-        assert_eq!(27, part_one(&parse_input("1,2,3")?));
-        assert_eq!(78, part_one(&parse_input("2,3,1")?));
-        assert_eq!(438, part_one(&parse_input("3,2,1")?));
-        assert_eq!(1836, part_one(&parse_input("3,1,2")?));
+        assert_eq!(part_one(&parse_input("0,3,6")?), 436);
+        assert_eq!(part_one(&parse_input("1,3,2")?), 1);
+        assert_eq!(part_one(&parse_input("2,1,3")?), 10);
+        assert_eq!(part_one(&parse_input("1,2,3")?), 27);
+        assert_eq!(part_one(&parse_input("2,3,1")?), 78);
+        assert_eq!(part_one(&parse_input("3,2,1")?), 438);
+        assert_eq!(part_one(&parse_input("3,1,2")?), 1836);
 
         Ok(())
     }
 
     #[test]
     fn test_part_one() -> Result<()> {
-        assert_eq!(1238, part_one(&parse_input(DATA)?));
+        assert_eq!(part_one(&parse_input(DATA)?), 1238);
 
         Ok(())
     }
 
     #[test]
     fn test_part_two_testdata() -> Result<()> {
-        assert_eq!(175594, part_two(&parse_input("0,3,6")?));
-        assert_eq!(2578, part_two(&parse_input("1,3,2")?));
-        assert_eq!(3544142, part_two(&parse_input("2,1,3")?));
-        assert_eq!(261214, part_two(&parse_input("1,2,3")?));
-        assert_eq!(6895259, part_two(&parse_input("2,3,1")?));
-        assert_eq!(18, part_two(&parse_input("3,2,1")?));
-        assert_eq!(362, part_two(&parse_input("3,1,2")?));
+        assert_eq!(part_two(&parse_input("0,3,6")?), 175594);
+        assert_eq!(part_two(&parse_input("1,3,2")?), 2578);
+        assert_eq!(part_two(&parse_input("2,1,3")?), 3544142);
+        assert_eq!(part_two(&parse_input("1,2,3")?), 261214);
+        assert_eq!(part_two(&parse_input("2,3,1")?), 6895259);
+        assert_eq!(part_two(&parse_input("3,2,1")?), 18);
+        assert_eq!(part_two(&parse_input("3,1,2")?), 362);
 
         Ok(())
     }
 
     #[test]
     fn test_part_two() -> Result<()> {
-        assert_eq!(3745954, part_two(&parse_input(DATA)?));
+        assert_eq!(part_two(&parse_input(DATA)?), 3745954);
 
         Ok(())
     }
